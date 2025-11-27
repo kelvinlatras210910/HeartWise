@@ -153,11 +153,11 @@ if page_choice == "new":
         years_since = current_age - age_diagnosed
 
         X_input = np.array([[systolic, diastolic, ldl, hdl, years_since]])
-        preds = np.array([tree.predict(X_input)[0] for tree in rf_model.estimators_])
-        mean_pred = np.mean(preds)
-        std_pred = np.std(preds)
-        confidence = max(0, 100 - (std_pred / (mean_pred + 1e-6)) * 100)
-        stage = int(round(mean_pred))
+        raw_pred = rf_model.predict(X_input)[0]
+        stage = int(round(raw_pred))
+        tree_outputs = np.array([tree.predict(X_input)[0] for tree in rf_model.estimators_])
+        std_pred = np.std(tree_outputs)
+        confidence = max(0, 100 - (std_pred / (raw_pred + 1e-6)) * 100)
 
         # DISPLAY RESULTS
         st.success(f"🩺 Predicted CAD Stage: **Stage {stage}**")
@@ -208,9 +208,11 @@ elif page_choice == "returning":
 
                 years_since = current_age - age_diagnosed
                 X_input = np.array([[systolic, diastolic, ldl, hdl, years_since]])
-                preds = np.array([tree.predict(X_input)[0] for tree in rf_model.estimators_])
-                mean_pred = np.mean(preds)
-                stage = int(round(mean_pred))
+                raw_pred = rf_model.predict(X_input)[0]
+                stage = int(round(raw_pred))
+                tree_outputs = np.array([tree.predict(X_input)[0] for tree in rf_model.estimators_])
+                std_pred = np.std(tree_outputs)
+                confidence = max(0, 100 - (std_pred / (raw_pred + 1e-6)) * 100)
 
                 map_val, pp_val = calculate_map_pp(systolic, diastolic)
 
@@ -227,4 +229,5 @@ elif page_choice == "returning":
                 save_patient(patient_code, age_diagnosed, stage)
 
                 st.caption(f"⏱️ Response time: {time.time() - start:.3f}s")
+
 
